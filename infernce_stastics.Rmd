@@ -1,0 +1,754 @@
+---
+title: "capstone_project"
+author: "lehara"
+date: '2025-02-02'
+output: html_document
+---
+```{r}
+#Strategy VS Platform
+
+library(dplyr)
+
+# Read the dataset
+data <- read.csv("Main_Data.csv")
+
+print(data)
+
+# Merge TikTok and Other into "Other" category
+data$Most_Used_SM <- ifelse(data$Most_Used_SM %in% c("TikTok", "Other"), "Other", data$Most_Used_SM)
+
+# Check the changes
+table(data$Strategy,data$Most_Used_SM)
+
+# Filter out rows where Strategy is "Other"
+data_filtered <- data %>%
+  filter(Strategy != "Other")
+
+# Check the filtered data
+table(data_filtered$Strategy, data_filtered$Most_Used_SM)
+
+
+contingency_table <- table(data_filtered$Strategy, data_filtered$Most_Used_SM)
+
+# Run the Chi-Square Test
+chi_square_test <- chisq.test(contingency_table)
+
+# Check the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+library(nnet)
+
+data <- subset(data, Strategy != "Other")  # Exclude rows where Strategy is "Other"
+
+# Convert Variables to Factors 
+data$Most_Used_SM <- as.factor(data$Most_Used_SM)
+data$Strategy <- as.factor(data$Strategy)
+
+# Fit Multinomial Logistic Regression Model
+logit_model <- multinom(Strategy ~ Most_Used_SM, data = data)
+
+# View Model Summary
+summary(logit_model)
+
+levels(data$Most_Used_SM)
+
+data$Most_Used_SM <- relevel(data$Most_Used_SM, ref = "WhatsApp")  # Change reference 
+logit_model <- multinom(Most_Used_SM ~ Strategy, data = data)
+summary(logit_model)
+
+
+library(ggplot2)
+
+coef_df <- data.frame(
+  Predictor = rownames(summary(logit_model)$coefficients),
+  Estimate = summary(logit_model)$coefficients[, 1],  # Coefficients
+  StdError = summary(logit_model)$standard.errors[, 1]  # Standard Errors
+)
+
+# Plot coefficients with error bars
+ggplot(coef_df, aes(x = Predictor, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - 1.96 * StdError, ymax = Estimate + 1.96 * StdError), width = 0.2) +
+  labs(title = "Multinomial Logistic Regression Coefficients",
+       x = "Predictor Variables", y = "Coefficient Estimate") +
+  theme_minimal() +
+  coord_flip()
+
+#Daily SM time VS  Platform, Frequency of Usage, Marital Status, State Trust  
+
+library(dplyr)
+
+# Read the dataset
+data <- read.csv("Main_Data.csv")
+
+data
+
+
+# Check the changes
+table(data$Daily_Spend_SM, data$Most_Used_SM)
+
+contingency_table <- table(data_filtered$Daily_Spend_SM, data_filtered$Most_Used_SM)
+
+contingency_table_modified <- contingency_table[-2, ]  # Removes the second row which contains majority of zero values
+
+contingency_table_modified
+
+# Run the Chi-Square test
+chi_square_test <- chisq.test(contingency_table_modified)
+
+# Print the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+
+# Check the changes
+table(data$Daily_Spend_SM, data$Frequency_FFA)
+
+contingency_table <- table(data_filtered$Daily_Spend_SM, data_filtered$Frequency_FFA)
+
+contingency_table_modified <- contingency_table[-2, ]  # Removes the second row which contains majority of zero values 
+contingency_table_modified
+
+# Run the Chi-Square test
+chi_square_test <- chisq.test(contingency_table_modified)
+
+# Print the result
+chi_square_test
+
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+# Check the changes
+table(data$Daily_Spend_SM, data$Marital_Status)
+
+contingency_table <- table(data_filtered$Daily_Spend_SM, data_filtered$Marital_Status)
+
+contingency_table_modified <- contingency_table[-2, ]  # Removes the second row which contains majority of zero values
+contingency_table_modified
+
+# Run the Chi-Square test
+chi_square_test <- chisq.test(contingency_table_modified)
+
+# Print the result
+chi_square_test
+
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+table(data$Daily_Spend_SM, data$State_Trust)
+
+contingency_table <- table(data_filtered$Daily_Spend_SM, data_filtered$State_Trust)
+
+contingency_table_modified <- contingency_table[-2, ]  # Removes the second row which contains majority of zero values
+contingency_table_modified
+
+# Run the Chi-Square test
+chi_square_test <- chisq.test(contingency_table_modified)
+
+# Print the result
+chi_square_test
+
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+# Convert Variables to Factors (if not already)
+data$Most_Used_SM <- as.factor(data$Most_Used_SM)
+data$Daily_Spend_SM <- as.factor(data$Daily_Spend_SM)
+data$Frequency_FFA <- as.factor(data$Frequency_FFA)
+data$Marital_Status <- as.factor(data$Marital_Status)
+data$State_Trust <- as.factor(data$State_Trust)
+
+# Fit Multinomial Logistic Regression Model
+logit_model <- multinom(Daily_Spend_SM ~ Most_Used_SM + Frequency_FFA + Marital_Status + State_Trust,  data = data)
+
+# View Model Summary
+summary(logit_model)
+
+# Load libraries
+library(ggplot2)
+
+coef_df <- data.frame(
+  Predictor = rownames(summary(logit_model)$coefficients),
+  Estimate = summary(logit_model)$coefficients[, 1],  # Coefficients
+  StdError = summary(logit_model)$standard.errors[, 1]  # Standard Errors
+)
+
+# Plot coefficients with error bars
+ggplot(coef_df, aes(x = Predictor, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - 1.96 * StdError, ymax = Estimate + 1.96 * StdError), width = 0.2) +
+  labs(title = "Multinomial Logistic Regression Coefficients",
+       x = "Predictor Variables", y = "Coefficient Estimate") +
+  theme_minimal() +
+  coord_flip()
+
+
+#Platform VS Marketing Strategies, Gender, Marital status, State of Trust
+
+library(dplyr)
+
+# Read the dataset
+data <- read.csv("Main_Data.csv")
+
+data
+
+# Merge TikTok and Other into "Other" category
+data$Most_Used_SM <- ifelse(data$Most_Used_SM %in% c("TikTok", "Other"), "Other", data$Most_Used_SM)
+
+# Check the filtered data
+table(data_filtered$Most_Used_SM, data_filtered$Marital_Status)
+
+
+contingency_table <- table(data_filtered$Most_Used_SM, data_filtered$Marital_Status)
+
+# Run the Chi-Square Test
+chi_square_test <- chisq.test(contingency_table)
+
+# Check the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+# Check the filtered data
+table(data_filtered$Most_Used_SM, data_filtered$Gender)
+
+
+contingency_table <- table(data_filtered$Most_Used_SM, data_filtered$Gender)
+
+# Run the Chi-Square Test
+chi_square_test <- chisq.test(contingency_table)
+
+# Check the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+# Check the filtered data
+table(data_filtered$Most_Used_SM, data_filtered$Strategy)
+
+
+contingency_table <- table(data_filtered$Most_Used_SM, data_filtered$Strategy)
+
+# Run the Chi-Square Test
+chi_square_test <- chisq.test(contingency_table)
+
+# Check the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+# Check the filtered data
+table(data_filtered$Most_Used_SM, data_filtered$State_Trust)
+
+
+contingency_table <- table(data_filtered$Most_Used_SM, data_filtered$State_Trust)
+
+# Run the Chi-Square Test
+chi_square_test <- chisq.test(contingency_table)
+
+# Check the result
+chi_square_test
+
+# Compute Cramér's V
+cramers_v <- sqrt(chi_square_test$statistic / (sum(contingency_table) * (min(nrow(contingency_table), ncol(contingency_table)) - 1)))
+
+# Display Results
+cramers_v
+
+
+# Convert Variables to Factors (if not already)
+data$Most_Used_SM <- as.factor(data$Most_Used_SM)
+data$Daily_Spend_SM <- as.factor(data$Strategy)
+data$Frequency_FFA <- as.factor(data$Gender)
+data$Marital_Status <- as.factor(data$Marital_Status)
+data$State_Trust <- as.factor(data$State_Trust)
+
+# Fit Multinomial Logistic Regression Model
+logit_model <- multinom(Most_Used_SM ~ Strategy + Marital_Status + Gender + State_Trust ,  data = data)
+
+# View Model Summary
+summary(logit_model)
+
+#install.packages(c("ggplot2", "ggmosaic", "ggpubr", "corrplot", "reshape2", "dplyr"))
+
+# Load libraries
+library(ggplot2)
+
+coef_df <- data.frame( 
+  Predictor = rownames(summary(logit_model)$coefficients),
+  Estimate = summary(logit_model)$coefficients[, 1],  # Coefficients
+  StdError = summary(logit_model)$standard.errors[, 1]  # Standard Errors
+)
+
+# Plot coefficients with error bars
+ggplot(coef_df, aes(x = Predictor, y = Estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Estimate - 1.96 * StdError, ymax = Estimate + 1.96 * StdError), width = 0.2) +
+  labs(title = "Multinomial Logistic Regression Coefficients",
+       x = "Predictor Variables", y = "Coefficient Estimate") +
+  theme_minimal() +
+  coord_flip()
+
+
+
+
+library(klaR)
+library(dplyr)
+library(ggplot2)
+
+#load data 
+data <- read.csv("Main_Data.csv")  # Replace with actual file name
+
+# Convert Categorical Columns to Factors
+categorical_columns <- c("Marital_Status", "Gender", "Daily_Spend_SM", "Most_Used_SM", "Frequency_FFA", 
+                         "Strategy", "Type_TA", "Type_IR", "Type_CR", "Type_LTO", 
+                         "Influence", "State_Trust", "Age_Requirement", "Residence_Requirement")
+# Check column names to identify any discrepancies
+colnames(data)
+
+# Check if all required columns exist
+required_columns <- c("Marital_Status", "Gender", "Daily_Spend_SM", "Most_Used_SM", 
+                      "Frequency_FFA", "Strategy", "Type_TA", "Type_IR", "Type_CR", 
+                      "Type_LTO", "Influence", "State_Trust", "Age_Requirement", 
+                      "Residence_Requirement")
+
+# Check if all required columns exist in the dataset
+missing_columns <- setdiff(required_columns, colnames(data))
+if (length(missing_columns) > 0) {
+  print(paste("Missing columns: ", paste(missing_columns, collapse = ", ")))
+} else {
+  # Convert categorical columns to factors
+  data[required_columns] <- lapply(data[required_columns], as.factor)
+}
+
+
+
+# Assign Strategy Type Based on Responses
+data <- data %>%
+  mutate(Strategy_Type = case_when(
+    Strategy == "Targeted Ads" ~ "Targeted Ads",
+    Strategy == "Influencer Recommendation" ~ "Influencer Recommendation",
+    Strategy == "Customer Reviews" ~ "Customer Reviews",
+    Strategy == "Limited-Time Offers or Promotions" ~ "Limited-Time Offers or Promotions",
+    TRUE ~ "Other"
+  ))
+
+# Assign Clusters Based on Strategy Type
+data$Cluster <- case_when(
+  data$Strategy_Type == "Targeted Ads" ~ 1,         # Cluster 1: Targeted Ads
+  data$Strategy_Type == "Influencer Recommendation" ~ 2,  # Cluster 2: Influencer Recommendation
+  data$Strategy_Type == "Customer Reviews" ~ 3,        # Cluster 3: Customer Reviews
+  data$Strategy_Type == "Limited-Time Offers or Promotions" ~ 4,  # Cluster 4: Limited-Time Offers
+  TRUE ~ 5                                              # Cluster 5: Other
+)
+
+#relevant categorical columns for clustering 
+clustering_columns <- c("Most_Used_SM", "Gender", "Daily_Spend_SM", "Frequency_FFA", 
+                        "Influence", "State_Trust", "Marital_Status","Age_Requirement", "Residence_Requirement")
+
+# Apply K-Modes clustering for refinement (you can choose the appropriate 'k' after running the Elbow method or other criteria)
+set.seed(123)
+kmodes_model <- kmodes(data[clustering_columns], 4, iter.max = 10)
+
+# Assign refined cluster labels to data
+data$Refined_Cluster <- kmodes_model$cluster
+
+# Summary of clusters
+cluster_summary <- data %>%
+  group_by(Cluster, Strategy_Type) %>%
+  summarise(
+    Count = n(),
+    Most_Common_SM = names(sort(table(Most_Used_SM), decreasing = TRUE))[1],
+
+  )
+
+# View Cluster Summary
+print(cluster_summary)
+
+# Visual Representation (Bar Plot for Strategy Type Distribution by Cluster)
+ggplot(data, aes(x = as.factor(Cluster), fill = Strategy_Type)) +
+  geom_bar(position = "stack") +
+  labs(title = "Cluster Distribution by Strategy Type", x = "Cluster", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set3")
+
+# Visual Representation (Bar Plot for Gender Distribution in Clusters)
+ggplot(data, aes(x = as.factor(Cluster), fill = Gender)) +
+  geom_bar(position = "stack") +
+  labs(title = "Gender Distribution by Cluster", x = "Cluster", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2")
+
+# Visual Representation (Boxplot for Daily Spend by Cluster)
+ggplot(data, aes(x = as.factor(Cluster), y = as.numeric(Daily_Spend_SM), fill = as.factor(Cluster))) +
+  geom_boxplot() +
+  labs(title = "Boxplot for Daily Spend by Cluster", x = "Cluster", y = "Daily Spend") +
+  theme_minimal()
+
+
+library(klaR)
+library(dplyr)
+library(ggplot2)
+
+# Load Your Dataset (replace with actual file)
+data <- read.csv("Main_Data.csv")  # Replace with actual file name
+
+# Convert Categorical Columns to Factors
+categorical_columns <- c("Marital_Status", "Gender", "Daily_Spend_SM", "Most_Used_SM", "Frequency_FFA", 
+                         "Strategy", "Type_TA", "Type_IR", "Type_CR", "Type_LTO", 
+                         "Influence", "State_Trust", "Age_Requirement", "Residence_Requirement")
+
+data[categorical_columns] <- lapply(data[categorical_columns], as.factor)
+
+# Assign Strategy Type Based on Responses
+data <- data %>%
+  mutate(Platform_Type = case_when(
+    Most_Used_SM == "Facebook" ~ "Facebook",   
+    Most_Used_SM == "Instagram" ~ "Instagram", 
+    Most_Used_SM == "WhatsApp" ~ "WhatsApp",  
+    Most_Used_SM == "YouTube" ~ "YouTube",    
+    Most_Used_SM == "TikTok" ~ "TikTok",     
+    TRUE ~ "Other"                          
+  ))
+
+# Assign Clusters Based on Strategy Type
+data$Cluster <- case_when(
+  data$Platform_Type == "Facebook" ~ 1,     # Cluster 1: Facebook
+  data$Platform_Type == "Instagram" ~ 2,    # Cluster 2: Instagram
+  data$Platform_Type == "WhatsApp" ~ 3,     # Cluster 3: WhatsApp
+  data$Platform_Type == "YouTube" ~ 4,      # Cluster 4: YouTube
+  data$Platform_Type == "TikTok" ~ 5,       # Cluster 5: TikTok
+  TRUE ~ 6                                  # Cluster 6: Other            
+)
+
+#relevant categorical columns for clustering 
+clustering_columns <- c("Strategy", "Gender", "Daily_Spend_SM", "Frequency_FFA", 
+                        "Influence", "State_Trust", "Marital_Status","Age_Requirement", "Residence_Requirement")
+
+# Apply K-Modes clustering for refinement (you can choose the appropriate 'k' after running the Elbow method or other criteria)
+set.seed(123)
+kmodes_model <- kmodes(data[clustering_columns], 5, iter.max = 10)
+
+# Assign refined cluster labels to data
+data$Refined_Cluster <- kmodes_model$cluster
+
+# Summary of clusters
+cluster_summary <- data %>%
+  group_by(Cluster, Platform_Type) %>%
+  summarise(
+    Count = n(),
+    Most_Common_Strategy = names(sort(table(Strategy), decreasing = TRUE))[1],
+    Dominant_Gender = names(sort(table(Gender), decreasing = TRUE))[1],
+    Dominant_State_Trust = names(sort(table(State_Trust), decreasing = TRUE))[1],
+    Dominant_Marital_Status = names(sort(table(Marital_Status), decreasing = TRUE))[1]
+  )
+
+# View Cluster Summary
+print(cluster_summary)
+
+
+# Visual Representation (Bar Plot for Gender Distribution in Clusters)
+ggplot(data, aes(x = as.factor(Cluster), fill = Gender)) +
+  geom_bar(position = "stack") +
+  labs(title = "Gender Distribution by Cluster", x = "Cluster", y = "Count") +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Set2")
+
+
+
+
+library(klaR)
+library(dplyr)
+library(ggplot2)
+
+# Load Your Dataset (replace with actual file)
+data <- read.csv("Main_Data.csv")  # Replace with actual file name
+
+# Convert Categorical Columns to Factors
+categorical_columns <- c("Marital_Status", "Gender", "Daily_Spend_SM", "Most_Used_SM", "Frequency_FFA", 
+                         "Strategy", "Type_TA", "Type_IR", "Type_CR", "Type_LTO", 
+                         "Influence", "State_Trust", "Age_Requirement", "Residence_Requirement")
+
+data[categorical_columns] <- lapply(data[categorical_columns], as.factor)
+
+# Assign Strategy Type Based on Responses
+data <- data %>%
+  mutate(Daily_Spend_SM_Type = case_when(
+    Daily_Spend_SM == "1 - 3 hours" ~ "1 - 3 hours",
+    Daily_Spend_SM == "4 - 6 hours" ~ "4 - 6 hours",
+    Daily_Spend_SM == "Less than 1 hour" ~ "Less than 1 hour",
+    Daily_Spend_SM == "More than 6 hours" ~ "More than 6 hours",
+    TRUE ~ "Other"
+  ))
+
+# Assign Clusters Based on Strategy Type
+data$Cluster <- case_when(
+  data$Daily_Spend_SM_Type == "1 - 3 hours" ~ 1,        # Cluster 1: 1 - 3 hours
+  data$Daily_Spend_SM_Type == "4 - 6 hours" ~ 2,        # Cluster 2: 4 - 6 hours
+  data$Daily_Spend_SM_Type == "Less than 1 hour" ~ 3,   # Cluster 3: Less than 1 hour     
+  data$Daily_Spend_SM_Type == "More than 6 hours" ~ 4,  # Cluster 4: More than 6 hours
+  TRUE ~ 5                                              # Cluster 5: Other
+)
+
+# relevant categorical columns for clustering 
+clustering_columns <- c("Strategy", "Gender", "Most_Used_SM", "Frequency_FFA", 
+                        "Influence", "State_Trust", "Marital_Status","Age_Requirement", "Residence_Requirement")
+
+# Apply K-Modes clustering for refinement (you can choose the appropriate 'k' after running the Elbow method or other criteria)
+set.seed(123)
+kmodes_model <- kmodes(data[clustering_columns], 4, iter.max = 10)
+
+# Assign refined cluster labels to data
+data$Refined_Cluster <- kmodes_model$cluster
+
+# Summary of clusters
+cluster_summary <- data %>%
+  group_by(Cluster, Daily_Spend_SM_Type) %>%
+  summarise(
+    Count = n(),
+    Most_Common_Used_SM = names(sort(table(Most_Used_SM), decreasing = TRUE))[1],
+    Dominant_State_Trust = names(sort(table(State_Trust), decreasing = TRUE))[1],
+
+
+
+Dominant_Marital_Status = names(sort(table(Marital_Status), decreasing = TRUE))[1]
+  )
+
+# View Cluster Summary
+print(cluster_summary)
+
+
+```
+```{r}
+# Social Media Marketing Strategy Analysis
+# Comprehensive Code with Clustering and Statistical Testing
+
+# ---------------------------
+# 1. Setup and Data Preparation
+# ---------------------------
+
+# Load required packages
+library(dplyr)
+library(nnet)
+library(ggplot2)
+library(klaR)
+library(cluster)
+library(vcd)
+
+# Import data
+data <- read.csv("Main_Data.csv")  # Replace with actual file path
+
+# ---------------------------
+# 2. Data Preprocessing
+# ---------------------------
+
+# Merge categories for analysis
+data <- data %>%
+  mutate(
+    Most_Used_SM = case_when(
+      Most_Used_SM %in% c("TikTok", "Other") ~ "Other",
+      TRUE ~ as.character(Most_Used_SM)
+    ),
+    Strategy = ifelse(Strategy == "Other", NA, Strategy)
+  ) %>%
+  filter(!is.na(Strategy)) %>%
+  mutate(across(c(Strategy, Most_Used_SM, Gender, Marital_Status, State_Trust), as.factor))
+
+# ---------------------------
+# 3. Statistical Analysis: Strategy vs Platform
+# ---------------------------
+
+# Enhanced contingency table analysis with automated test selection
+analyze_association <- function(var1, var2) {
+  tbl <- table(data[[var1]], data[[var2]])
+  
+  # Fisher's exact test for small samples
+  if(any(tbl < 5)) {
+    test <- fisher.test(tbl, simulate.p.value = TRUE)
+    method <- "Fisher's Exact Test"
+  } else {
+    test <- chisq.test(tbl)
+    method <- "Pearson's Chi-squared Test"
+  }
+  
+  # Calculate Cramér's V
+  cramer_v <- sqrt(test$statistic / (sum(tbl) * (min(dim(tbl)) - 1)))
+  
+  # Create mosaic plot
+  mosaicplot(tbl, main = paste(var1, "vs", var2), shade = TRUE)
+  
+  return(list(
+    method = method,
+    statistic = test$statistic,
+    p.value = test$p.value,
+    cramers_v = as.numeric(cramer_v)
+  ))
+}
+
+# Run analyses
+strategy_platform <- analyze_association("Strategy", "Most_Used_SM")
+daily_usage_platform <- analyze_association("Daily_Spend_SM", "Most_Used_SM")
+
+# ---------------------------
+# 4. Multinomial Logistic Regression
+# ---------------------------
+
+# Model 1: Strategy ~ Platform
+model1 <- multinom(Strategy ~ Most_Used_SM, data = data)
+
+# Model 2: Platform ~ Demographics + Strategy
+model2 <- multinom(Most_Used_SM ~ Strategy + Gender + Marital_Status + State_Trust, data = data)
+
+# Visualization function for model coefficients
+plot_coefficients <- function(model, title) {
+  coef_df <- data.frame(
+    Predictor = rownames(summary(model)$coefficients),
+    Estimate = c(summary(model)$coefficients),
+    StdError = c(summary(model)$standard.errors)
+  )
+  
+  ggplot(coef_df, aes(x = Predictor, y = Estimate)) +
+    geom_pointrange(aes(ymin = Estimate - 1.96*StdError, 
+                        ymax = Estimate + 1.96*StdError)) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(title = title, x = "Predictor", y = "Log-Odds") +
+    coord_flip() +
+    theme_minimal()
+}
+
+# Generate plots
+plot_coefficients(model1, "Strategy Prediction by Platform")
+plot_coefficients(model2, "Platform Prediction by Demographics/Strategy")
+
+# ---------------------------
+# 5. Advanced Clustering Analysis
+# ---------------------------
+
+# Prepare clustering variables
+clustering_data <- data %>%
+  select(Most_Used_SM, Strategy, Daily_Spend_SM, Gender, State_Trust) %>%
+  mutate(across(everything(), as.factor))
+
+# Optimal cluster number determination
+set.seed(123)
+wss <- sapply(1:8, function(k) {
+  kmodes(clustering_data, k, iter.max = 20)$withindiff
+})
+
+# Elbow plot
+ggplot(data.frame(k = 1:8, wss = wss), aes(k, wss)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Elbow Method for Optimal Cluster Number",
+       x = "Number of Clusters",
+       y = "Within-Cluster Dispersion") +
+  theme_minimal()
+
+# Final clustering with optimal k
+k <- 4  # Set based on elbow plot
+kmodes_model <- kmodes(clustering_data, k, iter.max = 20)
+
+# Add clusters to data
+data$Cluster <- as.factor(kmodes_model$cluster)
+
+# Cluster interpretation
+cluster_profile <- data %>%
+  group_by(Cluster) %>%
+  summarise(
+    Size = n(),
+    Preferred_Platform = names(which.max(table(Most_Used_SM))),
+    Common_Strategy = names(which.max(table(Strategy))),
+    Trust_Level = names(which.max(table(State_Trust))),
+    .groups = "drop"
+  )
+
+# ---------------------------
+# 6. Cluster Visualization
+# ---------------------------
+
+# Silhouette analysis
+gower_dist <- daisy(clustering_data, metric = "gower")
+silhouette_score <- silhouette(kmodes_model$cluster, gower_dist)
+
+# Silhouette plot
+fviz_silhouette(silhouette_score) +
+  labs(title = "Silhouette Plot of Clusters") +
+  theme_minimal()
+
+# Cluster characteristics radar plot
+library(fmsb)
+cluster_summary <- data %>%
+  group_by(Cluster) %>%
+  summarise(
+    Social_Media_Time = mean(as.numeric(Daily_Spend_SM), na.rm = TRUE),
+    Trust_Level = mean(as.numeric(State_Trust), na.rm = TRUE),
+    Female = mean(Gender == "Female", na.rm = TRUE),
+    Influencer_Use = mean(Strategy == "Influencer Recommendation", na.rm = TRUE)
+  ) %>%
+  mutate(across(-Cluster, scales::rescale))
+
+radarchart(cluster_summary[, -1], axistype = 1,
+           title = "Cluster Profiles Radar Chart",
+           pcol = rainbow(k), plwd = 2, plty = 1)
+
+# ---------------------------
+# 7. Results Reporting
+# ---------------------------
+
+# Generate automated report
+cat("=== Key Analysis Results ===\n\n",
+    "1. Strategy-Platform Association:\n",
+    "   - Test:", strategy_platform$method, "\n",
+    "   - X² =", round(strategy_platform$statistic, 2), "\n",
+    "   - p =", format.pval(strategy_platform$p.value, digits = 2), "\n",
+    "   - Cramér's V =", round(strategy_platform$cramers_v, 2), "\n\n",
+    
+    "2. Cluster Profiles:\n")
+print(cluster_profile)
+
+# Save results
+write.csv(cluster_profile, "cluster_profiles.csv", row.names = FALSE)
+ggsave("strategy_coefficients.png", plot_coefficients(model1), width = 8, height = 6)
+```
+
